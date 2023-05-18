@@ -37,7 +37,39 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
+        // get single data 
+        app.get('/toys/:id', async (req, res) => {
+            const id = req.params.id;
+            // get all data using query id
+            const query = { _id: new ObjectId(id) };
 
+            // get some or all data using option
+            const options = {
+                //set condition which data we are get
+                // value:0 means ---not get dada
+                // value:1 means ---get data data
+                // id by default get
+                projection: {
+                    toyName: 1,
+                    toyPhoto: 1,
+                    sellerName: 1,
+                    email: 1,
+                    rating: 1,
+                    quantity: 1,
+                    price: 1,
+                    description: 1,
+                },
+            };
+            const result = await toyCollection.findOne(query, options);
+            res.send(result);
+        })
+        // add toy data
+        app.post('/add-toy', async (req, res) => {
+            const toy = req.body;
+            console.log(toy);
+            const result = await toyCollection.insertOne(toy);
+            res.send(result);
+        })
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
