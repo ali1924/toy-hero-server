@@ -12,7 +12,7 @@ app.use(express.json());
 
 //mongo db
 
-const uri =`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bg5p3bd.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bg5p3bd.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -33,7 +33,7 @@ async function run() {
 
         // all toy data loaded 
         app.get('/toys', async (req, res) => {
-            const cursor = toyCollection.find().skip(0).limit(20);
+            const cursor = toyCollection.find().sort({ price: 1 }).skip(0).limit(20);
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -65,11 +65,6 @@ async function run() {
         })
         // get some data using query
         app.get('/toy/email', async (req, res) => {
-            // const el = req.query.email;
-            
-            // console.log('Email----', el);
-            // const result = await toyCollection.find({email:el}).toArray();
-            // res.send(result);
             let query = {};
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -81,7 +76,7 @@ async function run() {
         app.post('/add-toy', async (req, res) => {
             const toy = req.body;
             console.log(toy);
-            const result=await toyCollection.insertOne(toy);
+            const result = await toyCollection.insertOne(toy);
             res.send(result);
         })
         // delete toy single data
@@ -109,32 +104,29 @@ async function run() {
             const option = { upsert: true };
             const updateInfo = {
                 $set: {
-                    sellerName:updatedToy.sellerName,
-                    email: updatedToy.email,
-                    toyName:updatedToy.toyName,
-                    toyPhoto:updatedToy.toyPhoto,
-                    subcategory:updatedToy.subcategory,
-                    price:updatedToy.price,
-                    quantity:updatedToy.quantity,
-                    rating:updatedToy.rating,
-                    description:updatedToy.description,
+                    price: updatedToy.price,
+                    quantity: updatedToy.quantity,
+                    description: updatedToy.description,
                 }
             }
             const result = await toyCollection.updateOne(filter, updateInfo, option);
             res.send(result);
 
         })
-        //
-        // app.get('/toys', async (req, res) => {
-        //     const cursor = toyCollection.find().skip(0).limit(20);
-        //     const result = await cursor.toArray();
-        //     res.send(result);
-        // })
+
         // get all data 
         app.get('/allToyData', async (req, res) => {
             const result = await toyCollection.find().toArray();
             res.send(result);
         })
+        // get all data for search operation
+        app.get('/searchToy/:text', async (req, res) => {
+            const text = req.params.text;
+            console.log(text);
+            const result = await toyCollection.find({ toyName: { $regex: text, $options: 'i' } }).toArray();
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
