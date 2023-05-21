@@ -10,6 +10,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.use(cors());
 app.use(express.json());
 
+
 //mongo db
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bg5p3bd.mongodb.net/?retryWrites=true&w=majority`;
@@ -26,14 +27,23 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();---step-1
 
         // all 
         const toyCollection = client.db('toyHeroDb').collection('toys');
 
         // all toy data loaded 
+        // app.get('/toys', async (req, res) => {
+        //     const cursor = toyCollection.find().sort({price:1}).skip(0).limit(20);
+        //     const result = await cursor.toArray();
+        //     res.send(result);
+        // })
         app.get('/toys', async (req, res) => {
-            const cursor = toyCollection.find().sort({ price: 1 }).skip(0).limit(20);
+            const id = parseInt(req.query.id)
+            const objSort = {
+                price:id
+            }
+            const cursor = toyCollection.find().sort({price:1}).skip(0).limit(20);
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -139,7 +149,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Assignment 10 is running');
+    res.send('Assignment 11 is running');
 })
 app.listen(port, () => {
     console.log(`Assignment 10 is running on port: ${port}`)
